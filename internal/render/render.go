@@ -6,10 +6,9 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"path/filepath"
-
+	"errors"
 	"github.com/justinas/nosurf"
 )
 

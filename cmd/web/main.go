@@ -4,16 +4,19 @@ import (
 	"bookings/internal/config"
 	"bookings/internal/handlers"
 	"bookings/internal/render"
+	"bookings/internal/models"
+	"bookings/internal/helpers"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
-
+	"encoding/gob"
+	"os"
 	"github.com/alexedwards/scs/v2"
 )
 
 const portNumber = ":8080"
-
+const ipAddr = "172.23.63.184"
 var app config.AppConfig
 var session *scs.SessionManager
 var infoLog *log.Logger
@@ -26,10 +29,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(fmt.Sprintf("Staring application on port %s", portNumber))
+	fmt.Println(fmt.Sprintf("Staring application on Ip %s and port %s", ipAddr, portNumber))
 
 	srv := &http.Server{
-		Addr:    portNumber,
+		Addr:    ipAddr + portNumber,
 		Handler: routes(&app),
 	}
 
