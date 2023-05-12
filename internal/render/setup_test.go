@@ -1,15 +1,16 @@
 package render
 
 import (
+	"bookings/internal/config"
+	"bookings/internal/models"
 	"encoding/gob"
-	"github.com/alexedwards/scs/v2"
-	"github.com/tsawler/bookings-app/internal/config"
-	"github.com/tsawler/bookings-app/internal/models"
 	"log"
 	"net/http"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/alexedwards/scs/v2"
 )
 
 var session *scs.SessionManager

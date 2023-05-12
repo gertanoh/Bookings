@@ -1,21 +1,22 @@
 package handlers
 
 import (
+	"bookings/internal/models"
+	"bookings/internal/render"
 	"encoding/gob"
 	"fmt"
-	"github.com/alexedwards/scs/v2"
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
-	"github.com/justinas/nosurf"
-	"github.com/tsawler/bookings-app/internal/config"
-	"github.com/tsawler/bookings-app/internal/models"
-	"github.com/tsawler/bookings-app/internal/render"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/alexedwards/scs/v2"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/justinas/nosurf"
+	"bookings/internal/config"
 )
 
 var app config.AppConfig

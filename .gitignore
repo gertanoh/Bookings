@@ -6,3 +6,6 @@ bookings
 
 # Coverage
 coverage.*
+
+# Database
+database.yml
