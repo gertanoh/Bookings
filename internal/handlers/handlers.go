@@ -161,16 +161,12 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("object is valid, PostReservation")
-
 	newReservationID, err := m.DB.InsertReservation(reservation)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "can't insert reservation into database!")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
-
-	fmt.Println("database insert is done, PostReservation")
 
 	restriction := models.RoomRestriction{
 		StartDate:     startDate,
@@ -188,8 +184,6 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("database InsertRoomRestriction is done, PostReservation")
-
 	htlmMessage := fmt.Sprintf(`<strong>Reservation Confirmation</strong><br>
 	Dear %s:, <br>
 	This is to confirm your reservation from %s to %s.`,
@@ -205,12 +199,10 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	m.App.MailChan <- msg
-	fmt.Println("channel is blocking, PostReservation")
 
 	m.App.Session.Put(r.Context(), "reservation", reservation)
 
 	http.Redirect(w, r, "/reservation-summary", http.StatusSeeOther)
-	fmt.Println("end PostReservation")
 }
 
 // Generals renders the room page
