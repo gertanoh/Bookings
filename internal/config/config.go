@@ -10,6 +10,7 @@ import (
 
 // AppConfig holds the application config
 type AppConfig struct {
+	IpAddr        string
 	UseCache      bool
 	TemplateCache map[string]*template.Template
 	InfoLog       *log.Logger

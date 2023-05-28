@@ -9,6 +9,8 @@ import (
 	"bookings/internal/repository"
 	"bookings/internal/repository/dbrepo"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -95,6 +97,8 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 
 // PostReservation handles the posting of a reservation form
 func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Println("start PostReservation")
 	err := r.ParseForm()
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "can't parse form!")
@@ -157,12 +161,16 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("object is valid, PostReservation")
+
 	newReservationID, err := m.DB.InsertReservation(reservation)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "can't insert reservation into database!")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
+
+	fmt.Println("database insert is done, PostReservation")
 
 	restriction := models.RoomRestriction{
 		StartDate:     startDate,
@@ -174,15 +182,35 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 
 	err = m.DB.InsertRoomRestriction(restriction)
 	if err != nil {
+		log.Println("InsertRoomRestriction failed ", err)
 		m.App.Session.Put(r.Context(), "error", "can't insert room restriction!")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
+	fmt.Println("database InsertRoomRestriction is done, PostReservation")
+
+	htlmMessage := fmt.Sprintf(`<strong>Reservation Confirmation</strong><br>
+	Dear %s:, <br>
+	This is to confirm your reservation from %s to %s.`,
+		reservation.FirstName, reservation.StartDate.Format("2006-01-02"),
+		reservation.EndDate.Format("2006-01-02"))
+
+	// send notifications - first to guest
+	msg := models.MailData{
+		To:      reservation.Email,
+		From:    "me@here.com",
+		Subject: "Reservation Confirmation",
+		Content: htlmMessage,
+	}
+
+	m.App.MailChan <- msg
+	fmt.Println("channel is blocking, PostReservation")
+
 	m.App.Session.Put(r.Context(), "reservation", reservation)
 
 	http.Redirect(w, r, "/reservation-summary", http.StatusSeeOther)
-
+	fmt.Println("end PostReservation")
 }
 
 // Generals renders the room page

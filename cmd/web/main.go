@@ -82,6 +82,7 @@ func main() {
 		log.Fatal("Cannot get localhost IP")
 	}
 	fmt.Println(fmt.Sprintf("Staring application on Ip %s and port %s", ipAddr, portNumber))
+	app.IpAddr = ipAddr
 
 	srv := &http.Server{
 		Addr:    ipAddr + portNumber,
