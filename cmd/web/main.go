@@ -10,6 +10,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"time"
@@ -18,12 +19,51 @@ import (
 )
 
 const portNumber = ":8080"
-const ipAddr = "172.28.209.191"
+
+// const ipAddr = "172.22.209.191"
 
 var app config.AppConfig
 var session *scs.SessionManager
 var infoLog *log.Logger
 var errorLog *log.Logger
+
+func getLocalHostIpAddr() (error, string) {
+	// Get the list of network interfaces
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return err, ""
+	}
+
+	// Iterate over the network interfaces and find the one with the name "eth0"
+	for _, iface := range ifaces {
+		if iface.Name == "eth0" {
+			// Get the list of IP addresses for the interface
+			addrs, err := iface.Addrs()
+			if err != nil {
+				fmt.Println("Error:", err)
+				return err, ""
+			}
+
+			// Iterate over the IP addresses and find the first one that is an IPv4 address
+			for _, addr := range addrs {
+				ip, _, err := net.ParseCIDR(addr.String())
+				if err != nil {
+					fmt.Println("Error:", err)
+					return err, ""
+				}
+
+				if ip.To4() != nil {
+					// Found the first IPv4 address for the "eth0" interface
+					fmt.Println("IP address:", ip.String())
+					return nil, ip.String()
+				}
+			}
+		}
+	}
+
+	return err, ""
+}
 
 // main is the main function
 func main() {
@@ -32,6 +72,15 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.SQL.Close()
+	defer close(app.MailChan)
+	listenForMail()
+
+	fmt.Println("Starting mail listener")
+
+	err, ipAddr := getLocalHostIpAddr()
+	if err != nil {
+		log.Fatal("Cannot get localhost IP")
+	}
 	fmt.Println(fmt.Sprintf("Staring application on Ip %s and port %s", ipAddr, portNumber))
 
 	srv := &http.Server{
@@ -52,6 +101,8 @@ func run() (*driver.DB, error) {
 	gob.Register(models.Room{})
 	gob.Register(models.Restriction{})
 
+	mailChan := make(chan models.MailData)
+	app.MailChan = mailChan
 	// change this to true when in production
 	app.InProduction = false
 
@@ -89,7 +140,7 @@ func run() (*driver.DB, error) {
 
 	repo := handlers.NewRepo(&app, db)
 	handlers.NewHandlers(repo)
-	render.NewTemplates(&app)
+	render.NewRenderer(&app)
 	helpers.NewHelpers(&app)
 
 	return db, nil
